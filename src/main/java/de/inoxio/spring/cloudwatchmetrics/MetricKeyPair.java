@@ -7,7 +7,7 @@ public final class MetricKeyPair {
     private final String name;
     private final double value;
 
-    public MetricKeyPair(final String name, final double value) {
+    private MetricKeyPair(final String name, final double value) {
         this.name = name;
         this.value = value;
     }
