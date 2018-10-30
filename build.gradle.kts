@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "de.inoxio"
-version = "1.0.0"
+version = "1.0.1"
 description = "A java-spring library to push metrics to cloudwatch"
 
 apply {
@@ -32,6 +32,7 @@ dependencies {
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.mockito:mockito-core:2.23.0")
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.0")
 }
 
 java {

@@ -1,6 +1,8 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-public class MetricKeyPair {
+import java.util.Objects;
+
+public final class MetricKeyPair {
 
     private final String name;
     private final double value;
@@ -16,6 +18,30 @@ public class MetricKeyPair {
 
     public double getValue() {
         return value;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final var that = (MetricKeyPair) o;
+
+        return Double.compare(that.value, value) == 0 && Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, value);
+    }
+
+    @Override
+    public String toString() {
+        return "MetricKeyPair{" + "name='" + name + '\'' + ", value=" + value + '}';
     }
 
     public static final class MetricKeyPairBuilder {
