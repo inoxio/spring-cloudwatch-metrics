@@ -7,6 +7,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -41,18 +42,14 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
 
     private final CloudWatchAsyncClient cloudWatchClient;
     private final ObjectMapper objectMapper;
+    private final List<Dimension> dimensions = new ArrayList<>();
 
-    @Value(value = "${aws.cluster-name}")
-    private String clusterName;
-
+    @Value(value = "${aws.dashboard-name:#{null}}")
+    private String dashboardName;
     @Value(value = "${aws.metric-prefix}")
     private String metricPrefix;
-
     @Value(value = "${aws.namespace}")
     private String namespace;
-
-    @Value(value = "${aws.report-server-start}")
-    private boolean reportServerStart;
 
     @Autowired
     public CloudwatchRestDAO(final CloudWatchAsyncClient cloudWatchClient, final ObjectMapper objectMapper) {
@@ -63,10 +60,19 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
     }
 
     @Override
+    public void addDimension(final DimensionKeyPair... dimensionKeyPairs) {
+        Arrays.stream(dimensionKeyPairs)
+              .map(dimensionKeyPair -> Dimension.builder()
+                                                .name(dimensionKeyPair.getName())
+                                                .value(dimensionKeyPair.getValue())
+                                                .build())
+              .forEach(dimensions::add);
+    }
+
+    @Override
     public void pushMetrics(final MetricKeyPair... metrics) {
         notEmpty(metrics, "Metrics should at least contain one metric!");
 
-        final var dimension = Dimension.builder().name("ClusterName").value(clusterName).build();
         final var logMessage = new StringBuilder("Push metrics to cloudwatch:");
 
         final var metricDatums = Arrays.stream(metrics).map(metric -> {
@@ -75,7 +81,7 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
                               .metricName(metricPrefix + metric.getName())
                               .unit(StandardUnit.COUNT)
                               .value(metric.getValue())
-                              .dimensions(dimension)
+                              .dimensions(dimensions)
                               .build();
         }).collect(Collectors.toList());
 
@@ -88,9 +94,9 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
     }
 
     @PostConstruct
-    public void annotateServerStart() {
-        if (reportServerStart) {
-            final var dashboardRequest = GetDashboardRequest.builder().dashboardName(clusterName).build();
+    void annotateServerStart() {
+        if (dashboardName != null && !dashboardName.isEmpty()) {
+            final var dashboardRequest = GetDashboardRequest.builder().dashboardName(dashboardName).build();
 
             cloudWatchClient.getDashboard(dashboardRequest)
                             .thenApply(GetDashboardResponse::dashboardBody)
@@ -114,8 +120,7 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
     }
 
     void updateChangedDashboard(final String annotatedWidgets) {
-        final var putDashboardRequest = PutDashboardRequest.builder()
-                                                           .dashboardName(clusterName)
+        final var putDashboardRequest = PutDashboardRequest.builder().dashboardName(dashboardName)
                                                            .dashboardBody(annotatedWidgets)
                                                            .build();
 
@@ -170,8 +175,8 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
         }
     }
 
-    void setClusterName(final String clusterName) {
-        this.clusterName = clusterName;
+    void setDashboardName(final String dashboardName) {
+        this.dashboardName = dashboardName;
     }
 
     void setMetricPrefix(final String metricPrefix) {
@@ -180,9 +185,5 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
 
     void setNamespace(final String namespace) {
         this.namespace = namespace;
-    }
-
-    public void setReportServerStart(final boolean reportServerStart) {
-        this.reportServerStart = reportServerStart;
     }
 }

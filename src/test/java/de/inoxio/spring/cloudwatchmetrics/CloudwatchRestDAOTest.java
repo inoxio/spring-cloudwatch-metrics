@@ -16,6 +16,7 @@ import static org.mockito.Mockito.times;
 
 import static de.inoxio.spring.cloudwatchmetrics.AnnotationDTO.AnnotationBuilder.annotionBuilder;
 import static de.inoxio.spring.cloudwatchmetrics.AnnotationsDTO.AnnotationsBuilder.annotationsBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.DimensionKeyPair.DimensionKeyPairBuilder.dimensionKeyPairBuilder;
 import static de.inoxio.spring.cloudwatchmetrics.MetricDTO.MetricBuilder.metricBuilder;
 import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
 import static de.inoxio.spring.cloudwatchmetrics.PropertyDTO.PropertyBuilder.propertyBuilder;
@@ -47,19 +48,50 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 public class CloudwatchRestDAOTest {
 
     @Test
-    public void shouldputMetricsToCloudwatch() {
+    public void shouldPutMetricsToCloudwatch() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
         given(cloudWatchClient.putMetricData(anyPutMetricDataRequest())).willReturn(CompletableFuture.completedFuture(
                 null));
         final var cloudwatchRestDAO = new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class));
-        cloudwatchRestDAO.setClusterName("someClusterName");
         cloudwatchRestDAO.setMetricPrefix("somePrefix");
         cloudwatchRestDAO.setNamespace("someNamespace");
 
         // when
-        cloudwatchRestDAO.pushMetrics(metricKeyPairBuilder().withName("someMetric").withValue(10).build());
+        cloudwatchRestDAO.pushMetrics(metricKeyPairBuilder().name("someMetric").value(10).build());
+
+        // then
+        final var captor = ArgumentCaptor.forClass(PutMetricDataRequest.class);
+        then(cloudWatchClient).should().putMetricData(captor.capture());
+
+        final var request = captor.getValue();
+        assertThat(request.namespace(), is("someNamespace"));
+
+        final var metricData = request.metricData();
+        assertThat(metricData, hasSize(1));
+        assertThat(metricData.get(0).metricName(), is("somePrefixsomeMetric"));
+        assertThat(metricData.get(0).value(), is(10.0d));
+        assertThat(metricData.get(0).unit(), is(StandardUnit.COUNT));
+
+        final var dimensions = metricData.get(0).dimensions();
+        assertThat(dimensions, hasSize(0));
+    }
+
+    @Test
+    public void shouldPutMetricsToCloudwatchWithDimension() {
+
+        // given
+        final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
+        given(cloudWatchClient.putMetricData(anyPutMetricDataRequest())).willReturn(CompletableFuture.completedFuture(
+                null));
+        final var cloudwatchRestDAO = new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class));
+        cloudwatchRestDAO.setMetricPrefix("somePrefix");
+        cloudwatchRestDAO.setNamespace("someNamespace");
+        cloudwatchRestDAO.addDimension(dimensionKeyPairBuilder().name("someDimension").value("dimensionValue").build());
+
+        // when
+        cloudwatchRestDAO.pushMetrics(metricKeyPairBuilder().name("someMetric").value(10).build());
 
         // then
         final var captor = ArgumentCaptor.forClass(PutMetricDataRequest.class);
@@ -76,8 +108,8 @@ public class CloudwatchRestDAOTest {
 
         final var dimensions = metricData.get(0).dimensions();
         assertThat(dimensions, hasSize(1));
-        assertThat(dimensions.get(0).name(), is("ClusterName"));
-        assertThat(dimensions.get(0).value(), is("someClusterName"));
+        assertThat(dimensions.get(0).name(), is("someDimension"));
+        assertThat(dimensions.get(0).value(), is("dimensionValue"));
     }
 
     @Test
@@ -89,8 +121,7 @@ public class CloudwatchRestDAOTest {
                 GetDashboardResponse.builder().build()));
 
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class)));
-        cloudwatchRestDAO.setClusterName("someClusterName");
-        cloudwatchRestDAO.setReportServerStart(true);
+        cloudwatchRestDAO.setDashboardName("someDashboardName");
         willDoNothing().given(cloudwatchRestDAO).handleGetDashboard(null, null);
 
         // when
@@ -99,9 +130,23 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(GetDashboardRequest.class);
         then(cloudWatchClient).should().getDashboard(captor.capture());
-        assertThat(captor.getValue().dashboardName(), is("someClusterName"));
+        assertThat(captor.getValue().dashboardName(), is("someDashboardName"));
 
         then(cloudwatchRestDAO).should().handleGetDashboard(any(), any());
+    }
+
+    @Test
+    public void shouldNotGetDashboardWhenNoNameSet() {
+
+        // given
+        final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
+        final var cloudwatchRestDAO = new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class));
+
+        // when
+        cloudwatchRestDAO.annotateServerStart();
+
+        // then
+        then(cloudWatchClient).shouldHaveZeroInteractions();
     }
 
     @Test
@@ -236,7 +281,7 @@ public class CloudwatchRestDAOTest {
                 dashboardResponse));
 
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class)));
-        cloudwatchRestDAO.setClusterName("someClusterName");
+        cloudwatchRestDAO.setDashboardName("someDashboardName");
         willDoNothing().given(cloudwatchRestDAO)
                        .handlePutDashboard(dashboardResponse.dashboardValidationMessages(), null);
 
@@ -246,7 +291,7 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(PutDashboardRequest.class);
         then(cloudWatchClient).should().putDashboard(captor.capture());
-        assertThat(captor.getValue().dashboardName(), is("someClusterName"));
+        assertThat(captor.getValue().dashboardName(), is("someDashboardName"));
 
         then(cloudwatchRestDAO).should().handlePutDashboard(any(), any());
 
