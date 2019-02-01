@@ -1,6 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import com.jfrog.bintray.gradle.BintrayExtension
-import com.jfrog.bintray.gradle.tasks.RecordingCopyTask
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 
 plugins {
@@ -8,7 +6,7 @@ plugins {
     id("maven-publish")
     id("com.github.ben-manes.versions") version "0.20.0"
     id("com.jfrog.bintray") version "1.8.4"
-    id("org.springframework.boot") version "2.0.6.RELEASE"
+    id("org.springframework.boot") version "2.1.2.RELEASE"
 }
 
 group = "de.inoxio"
@@ -28,11 +26,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-json")
     // aws
-    implementation("software.amazon.awssdk:cloudwatch:2.0.6")
+    implementation("software.amazon.awssdk:cloudwatch:2.3.9")
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.mockito:mockito-core:2.23.0")
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.0")
+    testImplementation("org.mockito:mockito-core:2.23.4")
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.4")
 }
 
 java {
