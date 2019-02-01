@@ -9,7 +9,7 @@ If you have any questions please open an issue ticket!
 Add this to your build.gradle.kts
 ```kotlin
 dependencies {
-    implementation("de.inoxio:spring-cloudwatch-metrics:0.1.0")
+    implementation("de.inoxio:spring-cloudwatch-metrics:1.0.3")
 }
 ```
 
