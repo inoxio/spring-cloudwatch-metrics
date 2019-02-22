@@ -28,6 +28,7 @@ public class CloudwatchConfig {
 
     @Bean
     public Jackson2ObjectMapperBuilder jacksonBuilder() {
+        // https://www.baeldung.com/spring-boot-formatting-json-dates
         final var module = new JavaTimeModule();
         module.addDeserializer(ZonedDateTime.class, InstantDeserializer.ZONED_DATE_TIME);
         module.addSerializer(ZonedDateTime.class,
