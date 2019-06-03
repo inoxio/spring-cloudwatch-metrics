@@ -19,4 +19,16 @@ public class CloudwatchConfigTest {
         assertThat(cloudWatchClient).as("Cloud watch client is null.").isNotNull();
     }
 
+    @Test
+    public void shouldInitializeJacksonMapper() {
+
+        // given
+        final var appConfig = new CloudwatchConfig();
+
+        // when
+        final var jackson2ObjectMapperBuilder = appConfig.jacksonBuilder();
+
+        // then
+        assertThat(jackson2ObjectMapperBuilder).as("Jackson mapper is not initialized.").isNotNull();
+    }
 }
