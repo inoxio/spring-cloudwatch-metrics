@@ -1,9 +1,6 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -19,7 +16,7 @@ public class CloudwatchConfigTest {
         final var cloudWatchClient = appConfig.cloudWatchClient();
 
         // then
-        assertThat(cloudWatchClient, is(not(nullValue())));
+        assertThat(cloudWatchClient).as("Cloud watch client is null.").isNotNull();
     }
 
 }
