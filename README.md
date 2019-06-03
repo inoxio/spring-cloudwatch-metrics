@@ -64,3 +64,11 @@ aws:
                                        #           server start. It will add a vertical annotation to all graphs with
                                        #           metrics that start with 'metric-prefix'
 ```
+
+## Release
+
+Change version in `build.gradle.kts`, `README.md` and issue:
+
+```bash
+./gradlew bintrayUpload
+```
