@@ -1,9 +1,6 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -66,16 +63,16 @@ public class CloudwatchRestDAOTest {
         then(cloudWatchClient).should().putMetricData(captor.capture());
 
         final var request = captor.getValue();
-        assertThat(request.namespace(), is("someNamespace"));
+        assertThat(request.namespace()).as("Request does not contain the correct namespace").isEqualTo("someNamespace");
 
         final var metricData = request.metricData();
-        assertThat(metricData, hasSize(1));
-        assertThat(metricData.get(0).metricName(), is("somePrefixsomeMetric"));
-        assertThat(metricData.get(0).value(), is(10.0d));
-        assertThat(metricData.get(0).unit(), is(StandardUnit.COUNT));
+        assertThat(metricData).as("Size of metric is not one.").hasSize(1);
+        assertThat(metricData.get(0).metricName()).as("Metric name is not correct").isEqualTo("somePrefixsomeMetric");
+        assertThat(metricData.get(0).value()).as("Metric has incorrect value.").isEqualTo(10.0d);
+        assertThat(metricData.get(0).unit()).as("Unit type of metric is incorrect.").isEqualTo(StandardUnit.COUNT);
 
         final var dimensions = metricData.get(0).dimensions();
-        assertThat(dimensions, hasSize(0));
+        assertThat(dimensions).as("Size of metric dimensions is incorrect.").hasSize(0);
     }
 
     @Test
@@ -98,18 +95,18 @@ public class CloudwatchRestDAOTest {
         then(cloudWatchClient).should().putMetricData(captor.capture());
 
         final var request = captor.getValue();
-        assertThat(request.namespace(), is("someNamespace"));
+        assertThat(request.namespace()).as("Request does not contain the correct namespace").isEqualTo("someNamespace");
 
         final var metricData = request.metricData();
-        assertThat(metricData, hasSize(1));
-        assertThat(metricData.get(0).metricName(), is("somePrefixsomeMetric"));
-        assertThat(metricData.get(0).value(), is(10.0d));
-        assertThat(metricData.get(0).unit(), is(StandardUnit.COUNT));
+        assertThat(metricData).as("Size of metric is not one.").hasSize(1);
+        assertThat(metricData.get(0).metricName()).as("Metric name is not correct").isEqualTo("somePrefixsomeMetric");
+        assertThat(metricData.get(0).value()).as("Metric has incorrect value.").isEqualTo(10.0d);
+        assertThat(metricData.get(0).unit()).as("Unit type of metric is incorrect.").isEqualTo(StandardUnit.COUNT);
 
         final var dimensions = metricData.get(0).dimensions();
-        assertThat(dimensions, hasSize(1));
-        assertThat(dimensions.get(0).name(), is("someDimension"));
-        assertThat(dimensions.get(0).value(), is("dimensionValue"));
+        assertThat(dimensions).as("Size of metric dimensions is incorrect.").hasSize(1);
+        assertThat(dimensions.get(0).name()).as("Dimension name of metric is incorrect.").isEqualTo("someDimension");
+        assertThat(dimensions.get(0).value()).as("Dimension value of metric is incorrect.").isEqualTo("dimensionValue");
     }
 
     @Test
@@ -130,7 +127,7 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(GetDashboardRequest.class);
         then(cloudWatchClient).should().getDashboard(captor.capture());
-        assertThat(captor.getValue().dashboardName(), is("someDashboardName"));
+        assertThat(captor.getValue().dashboardName()).as("Deshboard name is incorrect.").isEqualTo("someDashboardName");
 
         then(cloudwatchRestDAO).should().handleGetDashboard(any(), any());
     }
@@ -227,7 +224,7 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(String.class);
         then(cloudwatchRestDAO).should().updateChangedDashboard(captor.capture());
-        assertThat(captor.getValue(), is("some other widget"));
+        assertThat(captor.getValue()).as("Dashboard was not updated.").isEqualTo("some other widget");
     }
 
     @Test(expected = RuntimeException.class)
@@ -291,7 +288,7 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(PutDashboardRequest.class);
         then(cloudWatchClient).should().putDashboard(captor.capture());
-        assertThat(captor.getValue().dashboardName(), is("someDashboardName"));
+        assertThat(captor.getValue().dashboardName()).as("Dashboard name is wrong.").isEqualTo("someDashboardName");
 
         then(cloudwatchRestDAO).should().handlePutDashboard(any(), any());
 
@@ -324,7 +321,8 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(String.class);
         then(cloudwatchRestDAO).should().logInfoMessage(captor.capture());
-        assertThat(captor.getValue(), is("Dashboard annotated"));
+        assertThat(captor.getValue()).as("Log message was not created.").isEqualTo("Dashboard annotated");
+
     }
 
     @Test
@@ -343,7 +341,9 @@ public class CloudwatchRestDAOTest {
         // then
         final var captor = ArgumentCaptor.forClass(String.class);
         then(cloudwatchRestDAO).should(times(2)).logInfoMessage(captor.capture());
-        assertThat(captor.getAllValues(), hasItems("Dashboard annotated", "BUT: some validation"));
+        assertThat(captor.getAllValues()).as("Incorrect validation warnings.")
+                                         .contains("Dashboard annotated", "BUT: some validation");
+
     }
 
     @Test
@@ -361,8 +361,9 @@ public class CloudwatchRestDAOTest {
 
         // then
         final var verticalAnnotations = widget.getProperties().getAnnotations().getVertical();
-        assertThat(verticalAnnotations, hasSize(1));
-        assertThat(verticalAnnotations.get(0).getLabel(), is("somePrefix Start"));
+        assertThat(verticalAnnotations).as("Size of vertical annotations is incorrect.").hasSize(1);
+        assertThat(verticalAnnotations.get(0).getLabel()).as("Vertival annotations label is incorrect.")
+                                                         .isEqualTo("somePrefix Start");
     }
 
     @Test
@@ -375,7 +376,8 @@ public class CloudwatchRestDAOTest {
 
         final var annotation = annotionBuilder().label("some Label").value(ZonedDateTime.now()).build();
 
-        final var widget = widgetBuilder().properties(propertyBuilder().annotations(annotationsBuilder().vertical(new ArrayList<>(
+        final var widget =
+         widgetBuilder().properties(propertyBuilder().annotations(annotationsBuilder().vertical(new ArrayList<>(
                 List.of(annotation))).build()).build()).build();
 
         // when
@@ -383,8 +385,9 @@ public class CloudwatchRestDAOTest {
 
         // then
         final var verticalAnnotations = widget.getProperties().getAnnotations().getVertical();
-        assertThat(verticalAnnotations, hasSize(2));
-        assertThat(verticalAnnotations.get(1).getLabel(), is("somePrefix Start"));
+        assertThat(verticalAnnotations).as("Size of vertical annotations is incorrect.").hasSize(2);
+        assertThat(verticalAnnotations.get(1).getLabel()).as("Label of vertical annotations is incorrect.")
+                                                         .isEqualTo("somePrefix Start");
     }
 
     @Test
@@ -402,7 +405,7 @@ public class CloudwatchRestDAOTest {
         final var test = cloudwatchRestDAO.filterWidgets().test(widget);
 
         // then
-        assertThat(test, is(false));
+        assertThat(test).as("Widget with no metrics was not filtered.").isEqualTo(false);
     }
 
     @Test
@@ -422,7 +425,7 @@ public class CloudwatchRestDAOTest {
         final var test = cloudwatchRestDAO.filterWidgets().test(widget);
 
         // then
-        assertThat(test, is(false));
+        assertThat(test).as("Widget with no metrics was not filtered.").isEqualTo(false);
     }
 
     @Test
@@ -442,7 +445,7 @@ public class CloudwatchRestDAOTest {
         final var test = cloudwatchRestDAO.filterWidgets().test(widget);
 
         // then
-        assertThat(test, is(true));
+        assertThat(test).as("Widget with prefixed metric name was not filtered.").isEqualTo(true);
     }
 
     private PutDashboardRequest anyPutDashboardRequest() {
