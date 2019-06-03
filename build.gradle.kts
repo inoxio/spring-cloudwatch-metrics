@@ -6,7 +6,7 @@ plugins {
     id("maven-publish")
     id("com.github.ben-manes.versions") version "0.21.0"
     id("com.jfrog.bintray") version "1.8.4"
-    id("org.springframework.boot") version "2.1.3.RELEASE"
+    id("org.springframework.boot") version "2.1.5.RELEASE"
 }
 
 group = "de.inoxio"
@@ -26,11 +26,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-json")
     // aws
-    implementation("software.amazon.awssdk:cloudwatch:2.5.12")
+    implementation("software.amazon.awssdk:cloudwatch:2.5.54")
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.mockito:mockito-core:2.25.1")
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.7")
+    testImplementation("org.mockito:mockito-core:2.28.2")
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.9")
 }
 
 java {
