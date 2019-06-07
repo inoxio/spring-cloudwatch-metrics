@@ -143,7 +143,9 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
         try {
             final var widgets = objectMapper.readValue(json, WidgetsDTO.class);
 
-            if (widgets != null) {
+            if (widgets == null) {
+                return json;
+            } else {
                 widgets.getWidgets().stream().filter(filterWidgets()).forEach(this::addAnnotationToWidget);
             }
 
