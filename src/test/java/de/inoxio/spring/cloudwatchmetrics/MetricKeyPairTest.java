@@ -1,7 +1,6 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
 
@@ -26,7 +25,8 @@ public class MetricKeyPairTest {
         final var toString = metricKeyPair.toString();
 
         // then
-        assertThat(toString, is("MetricKeyPair{name='name', value=1.0}"));
+        assertThat(toString).as("String of converted object is not correct.")
+                            .isEqualTo("MetricKeyPair{name='name', value=1.0}");
     }
 
 }
