@@ -19,6 +19,7 @@ import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuil
 import static de.inoxio.spring.cloudwatchmetrics.PropertyDTO.PropertyBuilder.propertyBuilder;
 import static de.inoxio.spring.cloudwatchmetrics.WidgetDTO.WidgetBuilder.widgetBuilder;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -446,6 +447,22 @@ public class CloudwatchRestDAOTest {
 
         // then
         assertThat(test).as("Widget with prefixed metric name was not filtered.").isEqualTo(true);
+    }
+
+    @Test
+    public void shouldReturnOriginalJsonWhenJsonIsInvalid() throws IOException {
+
+        // given
+        final var objectMapper = mock(ObjectMapper.class);
+        final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class), objectMapper);
+        String json = "{\"test\":[\"test\"]}";
+        willReturn(null).given(objectMapper).readValue(json, WidgetsDTO.class);
+
+        // when
+        final var actualJson = cloudwatchRestDAO.annotateWidgets(json);
+
+        // then
+        assertThat(actualJson).as("Returned json is not the original (invalid) json.").isEqualTo(json);
     }
 
     private PutDashboardRequest anyPutDashboardRequest() {
