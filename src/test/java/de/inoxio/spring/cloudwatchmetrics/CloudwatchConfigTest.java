@@ -2,12 +2,12 @@ package de.inoxio.spring.cloudwatchmetrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CloudwatchConfigTest {
+class CloudwatchConfigTest {
 
     @Test
-    public void shouldCreateCorrectCloudwatchClientBean() {
+    void shouldCreateCorrectCloudwatchClientBean() {
 
         // given
         final var appConfig = new CloudwatchConfig();
@@ -20,7 +20,7 @@ public class CloudwatchConfigTest {
     }
 
     @Test
-    public void shouldInitializeJacksonMapper() {
+    void shouldInitializeJacksonMapper() {
 
         // given
         final var appConfig = new CloudwatchConfig();

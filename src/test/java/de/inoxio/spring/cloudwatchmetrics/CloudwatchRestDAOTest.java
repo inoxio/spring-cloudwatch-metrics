@@ -1,6 +1,7 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -27,7 +28,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.Test;
+import org.assertj.core.api.ThrowableAssert;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,10 +45,10 @@ import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 
-public class CloudwatchRestDAOTest {
+class CloudwatchRestDAOTest {
 
     @Test
-    public void shouldPutMetricsToCloudwatch() {
+    void shouldPutMetricsToCloudwatch() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
@@ -77,7 +79,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldPutMetricsToCloudwatchWithDimension() {
+    void shouldPutMetricsToCloudwatchWithDimension() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
@@ -111,7 +113,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldGetDashboardWhenCreatingAnnotations() {
+    void shouldGetDashboardWhenCreatingAnnotations() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
@@ -134,7 +136,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldNotGetDashboardWhenNoNameSet() {
+    void shouldNotGetDashboardWhenNoNameSet() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
@@ -148,7 +150,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldDoNothingOnGetDashboardIfNonExisting() {
+    void shouldDoNothingOnGetDashboardIfNonExisting() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -167,8 +169,8 @@ public class CloudwatchRestDAOTest {
         then(cloudwatchRestDAO).should(times(0)).updateChangedDashboard(any());
     }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionOnGetDashboardIfError() {
+    @Test
+    void shouldThrowExceptionOnGetDashboardIfError() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -177,11 +179,15 @@ public class CloudwatchRestDAOTest {
         willThrow(new RuntimeException(testException)).given(cloudwatchRestDAO).checkAndThrowError(testException);
 
         // when
-        cloudwatchRestDAO.handleGetDashboard(null, testException);
+        final ThrowableAssert.ThrowingCallable callable = () -> cloudwatchRestDAO.handleGetDashboard(null, testException);
+
+        // then
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(callable);
     }
 
     @Test
-    public void shouldNotUpdateDashboardIfWidgetIsUnchanged() {
+    void shouldNotUpdateDashboardIfWidgetIsUnchanged() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -196,7 +202,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldNotUpdateDashboardIfParsedWidgetIsNull() {
+    void shouldNotUpdateDashboardIfParsedWidgetIsNull() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -211,7 +217,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldUpdateDashboardIfWidgetIsChanged() {
+    void shouldUpdateDashboardIfWidgetIsChanged() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -228,19 +234,23 @@ public class CloudwatchRestDAOTest {
         assertThat(captor.getValue()).as("Dashboard was not updated.").isEqualTo("some other widget");
     }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowRuntimeExceptionIfGiven() {
+    @Test
+    void shouldThrowRuntimeExceptionIfGiven() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
                                                             mock(ObjectMapper.class));
 
         // when
-        cloudwatchRestDAO.checkAndThrowError(new CompletionException(new Exception("Test exception. IGNORE!")));
+        final ThrowableAssert.ThrowingCallable callable = () -> cloudwatchRestDAO.checkAndThrowError(new CompletionException(new Exception("Test exception. IGNORE!")));
+
+        // then
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(callable);
     }
 
     @Test
-    public void shouldNotThrowRuntimeExceptionIfNonGiven() {
+    void shouldNotThrowRuntimeExceptionIfNonGiven() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -254,7 +264,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldNotThrowExceptionIfNoCauseIsGiven() {
+    void shouldNotThrowExceptionIfNoCauseIsGiven() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -267,7 +277,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldUpdateDashboard() {
+    void shouldUpdateDashboard() {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
@@ -295,8 +305,8 @@ public class CloudwatchRestDAOTest {
 
     }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldThrowExceptionOnPutDashboardIfError() {
+    @Test
+    void shouldThrowExceptionOnPutDashboardIfError() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -305,11 +315,14 @@ public class CloudwatchRestDAOTest {
         willThrow(new RuntimeException()).given(cloudwatchRestDAO).checkAndThrowError(testException);
 
         // when
-        cloudwatchRestDAO.handlePutDashboard(null, testException);
+        final ThrowableAssert.ThrowingCallable callable = () -> cloudwatchRestDAO.handlePutDashboard(List.of(), testException);
+
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(callable);
     }
 
     @Test
-    public void shouldLogMessageOnPutDashboard() {
+    void shouldLogMessageOnPutDashboard() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -327,7 +340,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldAlsoLogValidationWarningsOnPutDashboard() {
+    void shouldAlsoLogValidationWarningsOnPutDashboard() {
 
         // given
         final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -348,7 +361,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldAddNewAnnotation() {
+    void shouldAddNewAnnotation() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -368,7 +381,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldAddAnotherAnnotation() {
+    void shouldAddAnotherAnnotation() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -392,7 +405,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldFilterWidgetWithNoMetrics() {
+    void shouldFilterWidgetWithNoMetrics() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -410,7 +423,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldFilterWidgetWithOtherMetrics() {
+    void shouldFilterWidgetWithOtherMetrics() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -430,7 +443,7 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldFilterWidgetWithPrefixedMetricName() {
+    void shouldFilterWidgetWithPrefixedMetricName() {
 
         // given
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
@@ -450,12 +463,12 @@ public class CloudwatchRestDAOTest {
     }
 
     @Test
-    public void shouldReturnOriginalJsonWhenJsonIsInvalid() throws IOException {
+    void shouldReturnOriginalJsonWhenJsonIsInvalid() throws IOException {
 
         // given
         final var objectMapper = mock(ObjectMapper.class);
         final var cloudwatchRestDAO = new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class), objectMapper);
-        String json = "{\"test\":[\"test\"]}";
+        final var json = "{\"test\":[\"test\"]}";
         willReturn(null).given(objectMapper).readValue(json, WidgetsDTO.class);
 
         // when

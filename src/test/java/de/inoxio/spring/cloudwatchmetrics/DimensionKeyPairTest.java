@@ -4,19 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static de.inoxio.spring.cloudwatchmetrics.DimensionKeyPair.DimensionKeyPairBuilder.dimensionKeyPairBuilder;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class DimensionKeyPairTest {
+class DimensionKeyPairTest {
 
     @Test
-    public void shouldTestEqualsAndHashcode() {
+    void shouldTestEqualsAndHashcode() {
         EqualsVerifier.forClass(DimensionKeyPair.class).verify();
     }
 
     @Test
-    public void shouldConvertObjectToString() {
+    void shouldConvertObjectToString() {
 
         // given
         final var dimensionKeyPair = dimensionKeyPairBuilder().name("name").value("value").build();

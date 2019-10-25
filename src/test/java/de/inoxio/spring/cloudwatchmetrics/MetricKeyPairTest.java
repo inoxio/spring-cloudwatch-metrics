@@ -4,19 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class MetricKeyPairTest {
+class MetricKeyPairTest {
 
     @Test
-    public void shouldTestEqualsAndHashcode() {
+    void shouldTestEqualsAndHashcode() {
         EqualsVerifier.forClass(MetricKeyPair.class).verify();
     }
 
     @Test
-    public void shouldConvertObjectToString() {
+    void shouldConvertObjectToString() {
 
         // given
         final var metricKeyPair = metricKeyPairBuilder().name("name").value(1.0).build();

@@ -7,6 +7,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.27.0"
     id("com.jfrog.bintray") version "1.8.4"
     id("org.springframework.boot") version "2.1.9.RELEASE"
+    id("com.adarshr.test-logger") version "2.0.0"
 }
 
 group = "de.inoxio"
@@ -27,10 +28,16 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-json")
     // aws
     implementation("software.amazon.awssdk:cloudwatch:2.10.0")
+
     // test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "junit")
+    }
     testImplementation("org.mockito:mockito-core:3.1.0")
     testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.10")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter:5.5.2")
 }
 
 java {
@@ -138,6 +145,9 @@ tasks {
     }
     withType<Jar> {
         enabled = true
+    }
+    withType<Test> {
+        useJUnitPlatform()
     }
     withType<DependencyUpdatesTask> {
         rejectVersionIf {

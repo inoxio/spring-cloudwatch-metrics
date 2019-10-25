@@ -4,27 +4,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
-@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = CloudwatchConfig.class, loader = AnnotationConfigContextLoader.class)
 @JsonTest
-public class CloudwatchRestDeserializationTest {
+class CloudwatchRestDeserializationTest {
 
     @Autowired
     private ObjectMapper mapper;
 
     @Test
-    public void shouldTransformSimpleMetric() throws IOException {
+    void shouldTransformSimpleMetric() throws IOException {
 
         // given
         //language=JSON
@@ -39,7 +35,7 @@ public class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    public void shouldTransformMetricWithRenderingProperty() throws IOException {
+    void shouldTransformMetricWithRenderingProperty() throws IOException {
 
         // given
         //language=JSON
@@ -54,7 +50,7 @@ public class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    public void shouldTransformMetricWithDateAnnotation() throws IOException {
+    void shouldTransformMetricWithDateAnnotation() throws IOException {
 
         // given
         //language=JSON
@@ -70,7 +66,7 @@ public class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    public void shouldTransformMultipleMetrics() throws IOException {
+    void shouldTransformMultipleMetrics() throws IOException {
 
         // given
         //language=JSON
@@ -85,7 +81,7 @@ public class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    public void shouldTransformMultipleMetricsWithRenderingProperty() throws IOException {
+    void shouldTransformMultipleMetricsWithRenderingProperty() throws IOException {
 
         // given
         //language=JSON
@@ -102,7 +98,7 @@ public class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    public void shouldTransformRealWorldExample() throws IOException {
+    void shouldTransformRealWorldExample() throws IOException {
 
         // given
         //language=JSON
