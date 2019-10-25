@@ -144,7 +144,7 @@ public class CloudwatchRestDAOTest {
         cloudwatchRestDAO.annotateServerStart();
 
         // then
-        then(cloudWatchClient).shouldHaveZeroInteractions();
+        then(cloudWatchClient).shouldHaveNoInteractions();
     }
 
     @Test

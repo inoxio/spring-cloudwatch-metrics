@@ -4,9 +4,9 @@ import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 plugins {
     id("java-library")
     id("maven-publish")
-    id("com.github.ben-manes.versions") version "0.21.0"
+    id("com.github.ben-manes.versions") version "0.27.0"
     id("com.jfrog.bintray") version "1.8.4"
-    id("org.springframework.boot") version "2.1.5.RELEASE"
+    id("org.springframework.boot") version "2.1.9.RELEASE"
 }
 
 group = "de.inoxio"
@@ -26,11 +26,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-json")
     // aws
-    implementation("software.amazon.awssdk:cloudwatch:2.5.54")
+    implementation("software.amazon.awssdk:cloudwatch:2.10.0")
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.mockito:mockito-core:2.28.2")
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.9")
+    testImplementation("org.mockito:mockito-core:3.1.0")
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.1.10")
 }
 
 java {
@@ -140,17 +140,9 @@ tasks {
         enabled = true
     }
     withType<DependencyUpdatesTask> {
-        resolutionStrategy {
-            componentSelection {
-                all {
-                    if (listOf("alpha", "beta", "b01", "rc", "cr", "m")
-                                    .asSequence()
-                                    .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*") }
-                                    .any { it.matches(candidate.version) }) {
-                        reject("Release candidate")
-                    }
-                }
-            }
+        rejectVersionIf {
+            listOf("alpha", "beta", "rc", "cr", "m", "preview", "b", "ea", "pr")
+                    .any { qualifier -> "(?i).*[.-]$qualifier[.\\d-+]*".toRegex().matches(candidate.version) }
         }
     }
     withType<Wrapper> {
