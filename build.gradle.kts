@@ -47,13 +47,13 @@ java {
 
 val sourcesJar by tasks.registering(Jar::class) {
     dependsOn + "classes"
-    classifier = "sources"
-    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
 }
 
 val javadocJar by tasks.registering(Jar::class) {
     dependsOn + "javadoc"
-    classifier = "javadoc"
+    archiveClassifier.set("javadoc")
     from(tasks.withType<Javadoc>().first().destinationDir)
 }
 
@@ -157,7 +157,7 @@ tasks {
     }
     withType<Wrapper> {
         distributionType = ALL
-        gradleVersion = "5.4.1"
+        gradleVersion = "5.6.3"
     }
     withType<Javadoc> {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
