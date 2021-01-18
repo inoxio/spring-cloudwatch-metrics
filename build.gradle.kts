@@ -1,5 +1,6 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("java-library")
@@ -37,8 +38,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_10
-    targetCompatibility = JavaVersion.VERSION_1_10
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
@@ -141,6 +142,9 @@ tasks {
     }
     withType<Jar> {
         enabled = true
+    }
+    withType<BootJar> {
+        enabled = false
     }
     withType<Test> {
         useJUnitPlatform()
