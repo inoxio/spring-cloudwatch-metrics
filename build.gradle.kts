@@ -34,7 +34,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.mockito:mockito-core:3.5.6")
     testImplementation("nl.jqno.equalsverifier:equalsverifier:3.5.1")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
 }
 
 java {
