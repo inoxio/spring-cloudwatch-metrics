@@ -5,7 +5,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 plugins {
     id("java-library")
     id("maven-publish")
-    id("com.github.ben-manes.versions") version "0.36.0"
+    id("com.github.ben-manes.versions") version "0.38.0"
     id("com.jfrog.bintray") version "1.8.5"
     id("org.springframework.boot") version "2.4.2"
     id("com.adarshr.test-logger") version "2.1.1"
