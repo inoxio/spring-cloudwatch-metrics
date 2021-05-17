@@ -32,9 +32,7 @@ dependencies {
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.mockito:mockito-core:3.9.0")
     testImplementation("nl.jqno.equalsverifier:equalsverifier:3.6")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
 java {
