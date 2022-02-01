@@ -32,7 +32,7 @@ dependencies {
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.8.3")
+    testImplementation("nl.jqno.equalsverifier:equalsverifier:3.9")
 }
 
 java {
