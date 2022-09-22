@@ -7,7 +7,7 @@ plugins {
     id("maven-publish")
     id("com.github.ben-manes.versions") version "0.42.0"
     id("com.jfrog.bintray") version "1.8.5"
-    id("org.springframework.boot") version "2.7.3"
+    id("org.springframework.boot") version "2.7.4"
     id("com.adarshr.test-logger") version "3.2.0"
 }
 
