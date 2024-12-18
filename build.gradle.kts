@@ -2,7 +2,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("com.adarshr.test-logger") version "4.0.0"
-    id("io.spring.dependency-management") version "1.1.0"
+    id("io.spring.dependency-management") version "1.1.7"
     id("java-library")
     id("maven-publish")
     id("org.springframework.boot") version "3.4.0"
