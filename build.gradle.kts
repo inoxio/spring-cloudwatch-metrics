@@ -1,23 +1,16 @@
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
+    id("com.adarshr.test-logger") version "4.0.0"
+    id("io.spring.dependency-management") version "1.1.0"
     id("java-library")
     id("maven-publish")
-    id("com.github.ben-manes.versions") version "0.51.0"
-    id("com.jfrog.bintray") version "1.8.5"
     id("org.springframework.boot") version "3.4.0"
-    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 group = "de.inoxio"
-version = "1.2.0"
+version = "2.0.0"
 description = "A java-spring library to push metrics to cloudwatch"
-
-apply {
-    plugin("io.spring.dependency-management")
-}
 
 repositories {
     mavenCentral()
@@ -36,8 +29,7 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
@@ -89,46 +81,6 @@ publishing {
     }
 }
 
-bintray {
-    user = properties["bintray.user"] as String?
-            ?: System.getenv("BINTRAY_USER")
-    key = properties["bintray.api-key"] as String?
-            ?: System.getenv("BINTRAY_API_KEY")
-
-    setPublications("publication")
-
-    publish = true
-    override = false
-
-    pkg.apply {
-        repo = "maven"
-        name = project.name
-        userOrg = "inoxio"
-        desc = project.description
-        websiteUrl = "https://github.com/inoxio/${project.name}"
-        issueTrackerUrl = "https://github.com/inoxio/${project.name}/issues"
-        vcsUrl = "https://github.com/inoxio/${project.name}.git"
-        setLicenses("Apache-2.0")
-        githubRepo = "inoxio/${project.name}"
-
-        version.apply {
-            name = project.version as String
-            vcsTag = project.version as String
-            gpg.apply {
-                sign = true
-            }
-            mavenCentralSync.apply {
-                sync = true
-                user = properties["oss.user"] as String?
-                        ?: System.getenv("OSS_USER")
-                password = properties["oss.password"] as String?
-                        ?: System.getenv("OSS_PASSWORD")
-                close = "1"
-            }
-        }
-    }
-}
-
 tasks {
     withType<JavaCompile> {
         options.apply {
@@ -146,16 +98,6 @@ tasks {
     }
     withType<Test> {
         useJUnitPlatform()
-    }
-    withType<DependencyUpdatesTask> {
-        rejectVersionIf {
-            listOf("alpha", "beta", "rc", "cr", "m", "preview", "b", "ea", "pr")
-                    .any { qualifier -> "(?i).*[.-]$qualifier[.\\d-+]*".toRegex().matches(candidate.version) }
-        }
-    }
-    withType<Wrapper> {
-        distributionType = ALL
-        gradleVersion = "8.9"
     }
     withType<Javadoc> {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)

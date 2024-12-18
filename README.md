@@ -65,6 +65,14 @@ aws:
                                        #           metrics that start with 'metric-prefix'
 ```
 
+## Dependencies
+
+This project depends on the following libraries:
+* soring-bean
+* spring-context
+* spring-web
+* fasterxml
+
 ## Release
 
 Change version in `build.gradle.kts`, `README.md` and issue:

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,8 +106,7 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
 
     void handleGetDashboard(final String widgets, final Throwable throwable) {
         // log a warning when dashboard was not found
-        if (throwable != null && throwable.getCause() instanceof ResourceNotFoundException) {
-            final var cause = (ResourceNotFoundException) throwable.getCause();
+        if (throwable != null && throwable.getCause() instanceof final ResourceNotFoundException cause) {
             LOG.warn(cause.awsErrorDetails().errorMessage());
             return;
         }
