@@ -9,7 +9,7 @@ If you have any questions please open an issue ticket!
 Add this to your build.gradle.kts
 ```kotlin
 dependencies {
-    implementation("de.inoxio:spring-cloudwatch-metrics:1.1.0")
+    implementation("de.inoxio:spring-cloudwatch-metrics:2.0.0")
 }
 ```
 
@@ -78,5 +78,9 @@ This project depends on the following libraries:
 Change version in `build.gradle.kts`, `README.md` and issue:
 
 ```bash
-./gradlew bintrayUpload
+./gradlew clean test publishToSonatype closeAndReleaseSonatypeStagingRepository githubRelease
 ```
+
+## Check Renovate
+
+https://developer.mend.io/github/inoxio/spring-cloudwatch-metrics

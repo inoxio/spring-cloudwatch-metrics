@@ -2,10 +2,13 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("com.adarshr.test-logger") version "4.0.0"
+    id("com.rickbusarow.github-release-fork") version "2.5.2"
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("java-library")
     id("maven-publish")
     id("org.springframework.boot") version "3.4.0"
+    id("signing")
 }
 
 group = "de.inoxio"
@@ -30,55 +33,68 @@ dependencies {
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
-}
-
-val sourcesJar by tasks.registering(Jar::class) {
-    dependsOn + "classes"
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
-}
-
-val javadocJar by tasks.registering(Jar::class) {
-    dependsOn + "javadoc"
-    archiveClassifier.set("javadoc")
-    from(tasks.withType<Javadoc>().first().destinationDir)
+    withJavadocJar()
+    withSourcesJar()
 }
 
 publishing {
     publications {
-        register("publication", MavenPublication::class) {
+        create<MavenPublication>("maven") {
             groupId = project.group as String
             artifactId = project.name
             version = project.version as String
 
             from(components["java"])
-            artifact(sourcesJar.get())
-            artifact(javadocJar.get())
 
-            pom.withXml {
-                asNode().apply {
-                    appendNode("description", project.description)
-                    appendNode("name", "$groupId:$artifactId")
-                    appendNode("url", "https://github.com/inoxio/${project.name}")
+            pom {
 
-                    val license = appendNode("licenses").appendNode("license")
-                    license.appendNode("name", "The Apache Software License, Version 2.0")
-                    license.appendNode("url", "http://www.apache.org/licenses/LICENSE-2.0.txt")
+                name = "$groupId:$artifactId"
+                description = project.description
+                url = "https://github.com/inoxio/${project.name}"
 
-                    val developer = appendNode("developers").appendNode("developer")
-                    developer.appendNode("name", "Michael Kunze")
-                    developer.appendNode("email", "mkunze@inoxio.de")
-                    developer.appendNode("organization", "inoxio Quality Services GmbH")
-                    developer.appendNode("organizationUrl", "https://www.inoxio.de")
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        name = "Michael Kunze"
+                        email = "mkunze@inoxio.de"
+                        organization = "inoxio Quality Services GmbH"
+                        organizationUrl = "https://www.inoxio.de"
+                    }
+                }
 
-                    val scm = appendNode("scm")
-                    scm.appendNode("connection", "scm:git:git://github.com/inoxio/${project.name}.git")
-                    scm.appendNode("developerConnection", "scm:git:ssh://github.com:inoxio/${project.name}.git")
-                    scm.appendNode("url", "http://github.com/inoxio/${project.name}/tree/master")
+                scm {
+                    connection = "scm:git:git://github.com/inoxio/${project.name}.git"
+                    developerConnection = "scm:git:ssh://github.com:inoxio/${project.name}.git"
+                    url = "http://github.com/inoxio/${project.name}/tree/master"
                 }
             }
         }
     }
+}
+
+signing {
+    sign(publishing.publications["maven"])
+}
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+
+githubRelease {
+    token(project.findProperty("githubToken.inoxio") as? String)
+    repo = project.name
+    owner = "inoxio"
+    tagName = project.version as String
+    releaseName = project.version as String
+    generateReleaseNotes = true
+    targetCommitish = "master"
 }
 
 tasks {
@@ -101,5 +117,6 @@ tasks {
     }
     withType<Javadoc> {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+        (options as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
     }
 }
