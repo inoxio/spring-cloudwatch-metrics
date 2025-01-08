@@ -1,7 +1,15 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
+import static de.inoxio.spring.cloudwatchmetrics.AnnotationDTO.AnnotationBuilder.annotionBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.AnnotationsDTO.AnnotationsBuilder.annotationsBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.DimensionKeyPair.DimensionKeyPairBuilder.dimensionKeyPairBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.MetricDTO.MetricBuilder.metricBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.PropertyDTO.PropertyBuilder.propertyBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.WidgetDTO.WidgetBuilder.widgetBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -12,33 +20,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
-import static de.inoxio.spring.cloudwatchmetrics.AnnotationDTO.AnnotationBuilder.annotionBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.AnnotationsDTO.AnnotationsBuilder.annotationsBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.DimensionKeyPair.DimensionKeyPairBuilder.dimensionKeyPairBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.MetricDTO.MetricBuilder.metricBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.PropertyDTO.PropertyBuilder.propertyBuilder;
-import static de.inoxio.spring.cloudwatchmetrics.WidgetDTO.WidgetBuilder.widgetBuilder;
-
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.DashboardValidationMessage;
+import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.GetDashboardRequest;
 import software.amazon.awssdk.services.cloudwatch.model.GetDashboardResponse;
+import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutDashboardRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutDashboardResponse;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
@@ -52,8 +50,8 @@ class CloudwatchRestDAOTest {
 
         // given
         final var cloudWatchClient = mock(CloudWatchAsyncClient.class);
-        given(cloudWatchClient.putMetricData(anyPutMetricDataRequest())).willReturn(CompletableFuture.completedFuture(
-                null));
+        given(cloudWatchClient.putMetricData(anyPutMetricDataRequest()))
+                .willReturn(CompletableFuture.completedFuture(null));
         final var cloudwatchRestDAO = new CloudwatchRestDAO(cloudWatchClient, mock(ObjectMapper.class));
         cloudwatchRestDAO.setMetricPrefix("somePrefix");
         cloudwatchRestDAO.setNamespace("someNamespace");
@@ -70,12 +68,14 @@ class CloudwatchRestDAOTest {
 
         final var metricData = request.metricData();
         assertThat(metricData).as("Size of metric is not one.").hasSize(1);
-        assertThat(metricData.get(0).metricName()).as("Metric name is not correct").isEqualTo("somePrefixsomeMetric");
-        assertThat(metricData.get(0).value()).as("Metric has incorrect value.").isEqualTo(10.0d);
-        assertThat(metricData.get(0).unit()).as("Unit type of metric is incorrect.").isEqualTo(StandardUnit.COUNT);
-
-        final var dimensions = metricData.get(0).dimensions();
-        assertThat(dimensions).as("Size of metric dimensions is incorrect.").hasSize(0);
+        assertThat(metricData).as("Metric name is not correct")
+                .extracting(MetricDatum::metricName).containsExactly("somePrefixsomeMetric");
+        assertThat(metricData).as("Metric has incorrect value.")
+                .extracting(MetricDatum::value).containsExactly(10.0d);
+        assertThat(metricData).as("Unit type of metric is incorrect.")
+                .extracting(MetricDatum::unit).containsExactly(StandardUnit.COUNT);
+        assertThat(metricData).as("Size of metric dimensions is incorrect.")
+                .flatExtracting(MetricDatum::dimensions).hasSize(0);
     }
 
     @Test
@@ -102,14 +102,16 @@ class CloudwatchRestDAOTest {
 
         final var metricData = request.metricData();
         assertThat(metricData).as("Size of metric is not one.").hasSize(1);
-        assertThat(metricData.get(0).metricName()).as("Metric name is not correct").isEqualTo("somePrefixsomeMetric");
-        assertThat(metricData.get(0).value()).as("Metric has incorrect value.").isEqualTo(10.0d);
-        assertThat(metricData.get(0).unit()).as("Unit type of metric is incorrect.").isEqualTo(StandardUnit.COUNT);
-
-        final var dimensions = metricData.get(0).dimensions();
-        assertThat(dimensions).as("Size of metric dimensions is incorrect.").hasSize(1);
-        assertThat(dimensions.get(0).name()).as("Dimension name of metric is incorrect.").isEqualTo("someDimension");
-        assertThat(dimensions.get(0).value()).as("Dimension value of metric is incorrect.").isEqualTo("dimensionValue");
+        assertThat(metricData).as("Metric name is not correct")
+                .extracting(MetricDatum::metricName).containsExactly("somePrefixsomeMetric");
+        assertThat(metricData).as("Metric has incorrect value.")
+                .extracting(MetricDatum::value).containsExactly(10.0d);
+        assertThat(metricData).as("Unit type of metric is incorrect.")
+                .extracting(MetricDatum::unit).containsExactly(StandardUnit.COUNT);
+        assertThat(metricData).as("Dimonsion name and value is incorrect.")
+                .flatExtracting(MetricDatum::dimensions)
+                .extracting(Dimension::name, Dimension::value)
+                .containsExactly(tuple("someDimension", "dimensionValue"));
     }
 
     @Test
@@ -322,45 +324,6 @@ class CloudwatchRestDAOTest {
     }
 
     @Test
-    void shouldLogMessageOnPutDashboard() {
-
-        // given
-        final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
-                                                                mock(ObjectMapper.class)));
-        willDoNothing().given(cloudwatchRestDAO).logInfoMessage(any());
-
-        // when
-        cloudwatchRestDAO.handlePutDashboard(Collections.emptyList(), null);
-
-        // then
-        final var captor = ArgumentCaptor.forClass(String.class);
-        then(cloudwatchRestDAO).should().logInfoMessage(captor.capture());
-        assertThat(captor.getValue()).as("Log message was not created.").isEqualTo("Dashboard annotated");
-
-    }
-
-    @Test
-    void shouldAlsoLogValidationWarningsOnPutDashboard() {
-
-        // given
-        final var cloudwatchRestDAO = spy(new CloudwatchRestDAO(mock(CloudWatchAsyncClient.class),
-                                                                mock(ObjectMapper.class)));
-        willDoNothing().given(cloudwatchRestDAO).logInfoMessage(any());
-
-        // when
-        cloudwatchRestDAO.handlePutDashboard(List.of(DashboardValidationMessage.builder()
-                                                                               .message("some validation")
-                                                                               .build()), null);
-
-        // then
-        final var captor = ArgumentCaptor.forClass(String.class);
-        then(cloudwatchRestDAO).should(times(2)).logInfoMessage(captor.capture());
-        assertThat(captor.getAllValues()).as("Incorrect validation warnings.")
-                                         .contains("Dashboard annotated", "BUT: some validation");
-
-    }
-
-    @Test
     void shouldAddNewAnnotation() {
 
         // given
@@ -375,9 +338,10 @@ class CloudwatchRestDAOTest {
 
         // then
         final var verticalAnnotations = widget.getProperties().getAnnotations().getVertical();
-        assertThat(verticalAnnotations).as("Size of vertical annotations is incorrect.").hasSize(1);
-        assertThat(verticalAnnotations.get(0).getLabel()).as("Vertival annotations label is incorrect.")
-                                                         .isEqualTo("somePrefix Start");
+        assertThat(verticalAnnotations)
+                .as("Vertival annotations label is incorrect.")
+                .extracting(AnnotationDTO::getLabel)
+                .containsExactly("somePrefix Start");
     }
 
     @Test

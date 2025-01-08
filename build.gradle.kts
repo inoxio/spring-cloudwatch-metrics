@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "de.inoxio"
-version = "2.0.0"
+version = "2.0.1"
 description = "A java-spring library to push metrics to cloudwatch"
 
 repositories {

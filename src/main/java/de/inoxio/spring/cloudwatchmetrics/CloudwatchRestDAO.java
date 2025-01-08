@@ -1,7 +1,5 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-import static java.lang.String.format;
-
 import static org.springframework.util.Assert.notEmpty;
 import static org.springframework.util.Assert.notNull;
 
@@ -11,18 +9,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import jakarta.annotation.PostConstruct;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import jakarta.annotation.PostConstruct;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.DashboardValidationMessage;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -73,22 +66,18 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
     public void pushMetrics(final MetricKeyPair... metrics) {
         notEmpty(metrics, "Metrics should at least contain one metric!");
 
-        final var logMessage = new StringBuilder("Push metrics to cloudwatch:");
-
-        final var metricDatums = Arrays.stream(metrics).map(metric -> {
-            logMessage.append(format("%n%25s = %,13.1f", metric.getName(), metric.getValue()));
-            return MetricDatum.builder()
-                              .metricName(metricPrefix + metric.getName())
-                              .unit(StandardUnit.COUNT)
-                              .value(metric.getValue())
-                              .dimensions(dimensions)
-                              .build();
-        }).collect(Collectors.toList());
+        final var metricDatums = Arrays.stream(metrics)
+                .map(metric -> MetricDatum.builder()
+                          .metricName(metricPrefix + metric.getName())
+                          .unit(StandardUnit.COUNT)
+                          .value(metric.getValue())
+                          .dimensions(dimensions)
+                          .build())
+                .toList();
 
         final var request = PutMetricDataRequest.builder().namespace(namespace).metricData(metricDatums).build();
 
-        logInfoMessage(logMessage.toString());
-
+        LOG.info("Push metrics to cloudwatch: {}", (Object) metrics);
         cloudWatchClient.putMetricData(request)
                         .whenComplete((putMetricDataResponse, throwable) -> checkAndThrowError(throwable));
     }
@@ -130,12 +119,8 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
 
     void handlePutDashboard(final List<DashboardValidationMessage> dashboardValidationMessages, final Throwable throwable) {
         checkAndThrowError(throwable);
-        logInfoMessage("Dashboard annotated");
-        dashboardValidationMessages.forEach(validationMessage -> logInfoMessage("BUT: " + validationMessage.message()));
-    }
-
-    void logInfoMessage(final String message) {
-        LOG.info(message);
+        LOG.info("Dashboard annotated");
+        dashboardValidationMessages.forEach(message -> LOG.info("BUT: {}", message.message()));
     }
 
     String annotateWidgets(final String json) {
