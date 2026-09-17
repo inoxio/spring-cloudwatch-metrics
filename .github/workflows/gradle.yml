@@ -15,6 +15,6 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: 'adopt'
-          java-version: '21.0.12+101.0.LTS'
+          java-version: '25.0.4+101.0.LTS'
       - name: Run unit tests
         run: ./gradlew test
