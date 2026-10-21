@@ -24,7 +24,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-json")
     // aws
-    implementation("software.amazon.awssdk:cloudwatch:2.56.0")
+    implementation("software.amazon.awssdk:cloudwatch:2.57.1")
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
