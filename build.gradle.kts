@@ -1,10 +1,10 @@
+import org.jreleaser.model.Active
+
 plugins {
     alias(libs.plugins.test.logger)
-    alias(libs.plugins.github.release)
-    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.jreleaser)
     id("java-library")
     id("maven-publish")
-    id("signing")
 }
 
 group = "de.inoxio"
@@ -79,26 +79,44 @@ publishing {
             }
         }
     }
-}
-
-signing {
-    sign(publishing.publications["maven"])
-}
-
-nexusPublishing {
     repositories {
-        sonatype()
+        maven {
+            url = uri(layout.buildDirectory.dir("central-release"))
+        }
     }
 }
 
-githubRelease {
-    token(project.findProperty("githubToken.inoxio") as? String)
-    repo = project.name
-    owner = "inoxio"
-    tagName = project.version as String
-    releaseName = project.version as String
-    generateReleaseNotes = true
-    targetCommitish = "master"
+jreleaser {
+    signing {
+        active = Active.ALWAYS
+        armored = true
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                create("sonatype") {
+                    active = Active.ALWAYS
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository("build/central-release")
+                }
+            }
+        }
+    }
+    release {
+        github {
+            repoOwner = "inoxio"
+            name = project.name
+            tagName = "{{projectVersion}}"
+            releaseName = "{{projectVersion}}"
+            branch = "master"
+            changelog {
+                enabled = false
+            }
+            releaseNotes {
+                enabled = true
+            }
+        }
+    }
 }
 
 tasks {
