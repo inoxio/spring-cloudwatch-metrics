@@ -11,10 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
-      - name: Set up JDK
-        uses: actions/setup-java@v6
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+      # no setup-java: gradle runs on the runner's default JDK and uses the
+      # toolchain version from gradle/libs.versions.toml for compile and test
+      - uses: gradle/actions/setup-gradle@v6
       - name: Run unit tests
         run: ./gradlew test
