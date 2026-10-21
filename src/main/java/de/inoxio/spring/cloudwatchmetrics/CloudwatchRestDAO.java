@@ -1,21 +1,21 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
-import static org.springframework.util.Assert.notEmpty;
-import static org.springframework.util.Assert.notNull;
+import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-import jakarta.annotation.PostConstruct;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ext.javatime.ser.ZonedDateTimeSerializer;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.DashboardValidationMessage;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 
-@Repository
 public class CloudwatchRestDAO implements CloudwatchDAO {
 
     private static final Logger LOG = LoggerFactory.getLogger(CloudwatchRestDAO.class);
@@ -37,19 +36,37 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
     private final ObjectMapper objectMapper;
     private final List<Dimension> dimensions = new ArrayList<>();
 
-    @Value(value = "${aws.dashboard-name:#{null}}")
     private String dashboardName;
-    @Value(value = "${aws.metric-prefix}")
     private String metricPrefix;
-    @Value(value = "${aws.namespace}")
     private String namespace;
 
-    @Autowired
-    public CloudwatchRestDAO(final CloudWatchAsyncClient cloudWatchClient, final ObjectMapper objectMapper) {
-        notNull(cloudWatchClient, "CloudWatchClient must not be null!");
-        this.cloudWatchClient = cloudWatchClient;
-        notNull(objectMapper, "ObjectMapper must not be null!");
-        this.objectMapper = objectMapper;
+    public CloudwatchRestDAO(final CloudWatchAsyncClient cloudWatchClient,
+                             final String namespace,
+                             final String metricPrefix,
+                             final String dashboardName) {
+        this(cloudWatchClient, createObjectMapper());
+        this.namespace = requireNonNull(namespace, "Namespace must not be null!");
+        this.metricPrefix = requireNonNull(metricPrefix, "MetricPrefix must not be null!");
+        this.dashboardName = dashboardName;
+    }
+
+    CloudwatchRestDAO(final CloudWatchAsyncClient cloudWatchClient, final ObjectMapper objectMapper) {
+        this.cloudWatchClient = requireNonNull(cloudWatchClient, "CloudWatchClient must not be null!");
+        this.objectMapper = requireNonNull(objectMapper, "ObjectMapper must not be null!");
+    }
+
+    /**
+     * Private mapper for the dashboard body, deliberately not exposed as a bean so the consumers jackson setup stays
+     * untouched.
+     */
+    static ObjectMapper createObjectMapper() {
+        final var module = new SimpleModule();
+        module.addSerializer(ZonedDateTime.class,
+                             new ZonedDateTimeSerializer(new DateTimeFormatterBuilder().appendInstant(0).toFormatter()));
+        return JsonMapper.builder()
+                         .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                         .addModule(module)
+                         .build();
     }
 
     @Override
@@ -64,7 +81,9 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
 
     @Override
     public void pushMetrics(final MetricKeyPair... metrics) {
-        notEmpty(metrics, "Metrics should at least contain one metric!");
+        if (metrics == null || metrics.length == 0) {
+            throw new IllegalArgumentException("Metrics should at least contain one metric!");
+        }
 
         final var metricDatums = Arrays.stream(metrics)
                 .map(metric -> MetricDatum.builder()
@@ -82,8 +101,7 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
                         .whenComplete((putMetricDataResponse, throwable) -> checkAndThrowError(throwable));
     }
 
-    @PostConstruct
-    void annotateServerStart() {
+    public void annotateServerStart() {
         if (dashboardName != null && !dashboardName.isEmpty()) {
             final var dashboardRequest = GetDashboardRequest.builder().dashboardName(dashboardName).build();
 
@@ -134,7 +152,7 @@ public class CloudwatchRestDAO implements CloudwatchDAO {
             }
 
             return objectMapper.writeValueAsString(widgets);
-        } catch (final IOException e) {
+        } catch (final JacksonException e) {
             LOG.error("Unable to transform JSON to PoJo", e);
             return null;
         }

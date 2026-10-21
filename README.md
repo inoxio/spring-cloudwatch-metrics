@@ -4,54 +4,17 @@ A java-spring library to push metrics to cloudwatch
 
 If you have any questions please open an issue ticket!
 
+## Requirements
+
+* Java 21+
+* Spring Boot 4.x (Jackson 3)
+
 ## Usage
 
 Add this to your build.gradle.kts
 ```kotlin
 dependencies {
-    implementation("de.inoxio:spring-cloudwatch-metrics:2.0.1")
-}
-```
-
-Inject the CloudwatchDAO from your service as usual:
-
-```java
-@Service
-public class SomeServiceImpl implements SomeService {
-    private final CloudwatchDAO cloudwatchDAO;
-    
-    @Autowired
-    public SomeServiceImpl(final CloudwatchDAO cloudwatchDAO) {
-        notNull(cloudwatchDAO, "CloudwatchDAO must not be null!");
-        this.cloudwatchDAO = cloudwatchDAO;
-    }
-    
-    /**
-    * Optional: If you want to add one or more dimensions to your metrics 
-    */
-    @PostConstruct
-    private void addDimension() {
-        cloudwatchDAO.addDimension(dimensionKeyPairBuilder().name("DimensionName")
-                                                            .value("DimensionValue")
-                                                            .build());
-    }
-    
-    /**
-    * To push used heap memory and cpu usage to cloudwatch 
-    * have a method like this in your service that calls
-    * the CloudwatchDAO. Intended to be invoked by a scheduler.
-    */
-    public void pushMetrics() {
-        final var memoryBean = ManagementFactory.getMemoryMXBean();
-        final var operatingSystemBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        
-        cloudwatchDAO.pushMetrics(metricKeyPairBuilder().withName("HeapMemoryUsed")
-                                                        .withValue(memoryBean.getHeapMemoryUsage().getUsed())
-                                                        .build(),
-                                  metricKeyPairBuilder().withName("ProcessCpuLoad")
-                                                        .withValue(operatingSystemBean.getProcessCpuLoad() * MAX_PERCENT)
-                                                        .build());
-    }
+    implementation("de.inoxio:spring-cloudwatch-metrics:3.0.0")
 }
 ```
 
@@ -65,13 +28,89 @@ aws:
                                        #           metrics that start with 'metric-prefix'
 ```
 
+The library registers itself via Spring Boot auto-configuration, no component scan is needed. Inject the
+`CloudwatchDAO` into your service:
+
+```java
+import static de.inoxio.spring.cloudwatchmetrics.DimensionKeyPair.DimensionKeyPairBuilder.dimensionKeyPairBuilder;
+import static de.inoxio.spring.cloudwatchmetrics.MetricKeyPair.MetricKeyPairBuilder.metricKeyPairBuilder;
+
+import java.lang.management.ManagementFactory;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import com.sun.management.OperatingSystemMXBean;
+
+import de.inoxio.spring.cloudwatchmetrics.CloudwatchDAO;
+
+@Service
+public class MetricsService {
+
+    private static final int MAX_PERCENT = 100;
+
+    private final CloudwatchDAO cloudwatchDAO;
+
+    public MetricsService(final CloudwatchDAO cloudwatchDAO) {
+        this.cloudwatchDAO = cloudwatchDAO;
+        // Optional: add one or more dimensions to all metrics
+        cloudwatchDAO.addDimension(dimensionKeyPairBuilder().name("DimensionName")
+                                                            .value("DimensionValue")
+                                                            .build());
+    }
+
+    /**
+     * Pushes used heap memory and cpu usage to cloudwatch every minute.
+     * Requires @EnableScheduling on one of your configuration classes.
+     */
+    @Scheduled(fixedRate = 60_000)
+    public void pushMetrics() {
+        final var memoryBean = ManagementFactory.getMemoryMXBean();
+        final var operatingSystemBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+        cloudwatchDAO.pushMetrics(metricKeyPairBuilder().name("HeapMemoryUsed")
+                                                        .value(memoryBean.getHeapMemoryUsage().getUsed())
+                                                        .build(),
+                                  metricKeyPairBuilder().name("ProcessCpuLoad")
+                                                        .value(operatingSystemBean.getProcessCpuLoad() * MAX_PERCENT)
+                                                        .build());
+    }
+}
+```
+
+All metrics are pushed with the unit `Count`.
+
+### Custom CloudWatch client
+
+By default a `CloudWatchAsyncClient` for region `eu-central-1` is created. To use another region or custom
+credentials, define your own bean, the auto-configured one backs off:
+
+```java
+@Bean
+public CloudWatchAsyncClient cloudWatchClient() {
+    return CloudWatchAsyncClient.builder().region(Region.EU_WEST_1).build();
+}
+```
+
+You can also replace the `CloudwatchDAO` completely by defining your own bean of that type.
+
+## Migration from 2.x to 3.0.0
+
+* Requires Spring Boot 4 and Jackson 3 (`tools.jackson`).
+* The library no longer registers a global `Jackson2ObjectMapperBuilder` bean, your application's Jackson
+  configuration stays untouched.
+* `CloudwatchConfig` is now an auto-configuration. If you imported or component-scanned it explicitly, remove that.
+* The public constructor of `CloudwatchRestDAO` changed to
+  `(CloudWatchAsyncClient, String namespace, String metricPrefix, String dashboardName)`.
+
 ## Dependencies
 
-This project depends on the following libraries:
-* soring-bean
-* spring-context
-* spring-web
-* fasterxml
+At runtime this project only depends on:
+* AWS SDK `cloudwatch` (part of the API, the `CloudWatchAsyncClient` bean can be overridden)
+* Jackson 3 `jackson-databind` (used internally, no `ObjectMapper` bean is registered)
+* `slf4j-api`
+
+Spring Boot is not pulled in, the consuming application brings its own (Spring Boot 4.x).
 
 ## Release
 

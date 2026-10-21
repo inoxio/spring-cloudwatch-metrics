@@ -20,13 +20,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -427,7 +426,7 @@ class CloudwatchRestDAOTest {
     }
 
     @Test
-    void shouldReturnOriginalJsonWhenJsonIsInvalid() throws IOException {
+    void shouldReturnOriginalJsonWhenJsonIsInvalid() {
 
         // given
         final var objectMapper = mock(ObjectMapper.class);

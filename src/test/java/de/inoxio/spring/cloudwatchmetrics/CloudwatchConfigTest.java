@@ -1,34 +1,41 @@
 package de.inoxio.spring.cloudwatchmetrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 
 class CloudwatchConfigTest {
 
+    private final ApplicationContextRunner contextRunner =
+            new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(CloudwatchConfig.class))
+                                          .withPropertyValues("aws.namespace=someNamespace",
+                                                              "aws.metric-prefix=somePrefix");
+
     @Test
-    void shouldCreateCorrectCloudwatchClientBean() {
-
-        // given
-        final var appConfig = new CloudwatchConfig();
-
-        // when
-        final var cloudWatchClient = appConfig.cloudWatchClient();
-
-        // then
-        assertThat(cloudWatchClient).as("Cloud watch client is null.").isNotNull();
+    void shouldAutoConfigureCloudwatchDAO() {
+        contextRunner.run(context -> {
+            assertThat(context).hasSingleBean(CloudWatchAsyncClient.class);
+            assertThat(context).hasSingleBean(CloudwatchDAO.class);
+        });
     }
 
     @Test
-    void shouldInitializeJacksonMapper() {
+    void shouldBackOffWhenClientIsProvided() {
+        final var client = mock(CloudWatchAsyncClient.class);
+        contextRunner.withBean(CloudWatchAsyncClient.class, () -> client).run(context -> {
+            assertThat(context).getBean(CloudWatchAsyncClient.class).isSameAs(client);
+            assertThat(context).hasSingleBean(CloudwatchDAO.class);
+        });
+    }
 
-        // given
-        final var appConfig = new CloudwatchConfig();
-
-        // when
-        final var jackson2ObjectMapperBuilder = appConfig.jacksonBuilder();
-
-        // then
-        assertThat(jackson2ObjectMapperBuilder).as("Jackson mapper is not initialized.").isNotNull();
+    @Test
+    void shouldFailWithoutRequiredProperties() {
+        new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(CloudwatchConfig.class))
+                                      .run(context -> assertThat(context).hasFailed());
     }
 }
