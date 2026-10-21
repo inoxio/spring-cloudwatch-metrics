@@ -2,6 +2,8 @@
 # touch adjacent lines and can be merged/rebased without conflicts.
 
 [versions]
+# --- java (toolchain, the only place to change the java version)
+java = "21"
 # --- spring-boot
 spring-boot = "4.1.1"
 # --- aws-sdk
