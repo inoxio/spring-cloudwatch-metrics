@@ -16,10 +16,8 @@ slf4j = "2.0.20"
 equalsverifier = "4.5.2"
 # --- test-logger
 test-logger = "4.0.0"
-# --- github-release
-github-release = "2.5.2"
-# --- nexus-publish
-nexus-publish = "2.0.0"
+# --- jreleaser
+jreleaser = "1.26.0"
 # ---
 
 [libraries]
@@ -36,5 +34,4 @@ equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version.ref
 
 [plugins]
 test-logger = { id = "com.adarshr.test-logger", version.ref = "test-logger" }
-github-release = { id = "com.rickbusarow.github-release-fork", version.ref = "github-release" }
-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
