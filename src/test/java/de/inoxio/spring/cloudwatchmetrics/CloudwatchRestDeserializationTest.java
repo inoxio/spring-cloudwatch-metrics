@@ -2,25 +2,16 @@ package de.inoxio.spring.cloudwatchmetrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
-@ContextConfiguration(classes = CloudwatchConfig.class, loader = AnnotationConfigContextLoader.class)
-@JsonTest
 class CloudwatchRestDeserializationTest {
 
-    @Autowired
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper = CloudwatchRestDAO.createObjectMapper();
 
     @Test
-    void shouldTransformSimpleMetric() throws IOException {
+    void shouldTransformSimpleMetric() {
 
         // given
         //language=JSON
@@ -35,7 +26,7 @@ class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    void shouldTransformMetricWithRenderingProperty() throws IOException {
+    void shouldTransformMetricWithRenderingProperty() {
 
         // given
         //language=JSON
@@ -50,7 +41,7 @@ class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    void shouldTransformMetricWithDateAnnotation() throws IOException {
+    void shouldTransformMetricWithDateAnnotation() {
 
         // given
         //language=JSON
@@ -66,7 +57,7 @@ class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    void shouldTransformMultipleMetrics() throws IOException {
+    void shouldTransformMultipleMetrics() {
 
         // given
         //language=JSON
@@ -81,7 +72,7 @@ class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    void shouldTransformMultipleMetricsWithRenderingProperty() throws IOException {
+    void shouldTransformMultipleMetricsWithRenderingProperty() {
 
         // given
         //language=JSON
@@ -98,7 +89,7 @@ class CloudwatchRestDeserializationTest {
     }
 
     @Test
-    void shouldTransformRealWorldExample() throws IOException {
+    void shouldTransformRealWorldExample() {
 
         // given
         //language=JSON

@@ -3,8 +3,8 @@ package de.inoxio.spring.cloudwatchmetrics;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @JsonDeserialize(using = MetricDTODeserializer.class)
 @JsonSerialize(using = MetricDTOSerializer.class)

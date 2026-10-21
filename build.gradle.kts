@@ -1,18 +1,14 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
 plugins {
-    id("com.adarshr.test-logger") version "4.0.0"
-    id("com.rickbusarow.github-release-fork") version "2.5.2"
-    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
-    id("io.spring.dependency-management") version "1.1.7"
+    alias(libs.plugins.test.logger)
+    alias(libs.plugins.github.release)
+    alias(libs.plugins.nexus.publish)
     id("java-library")
     id("maven-publish")
-    id("org.springframework.boot") version "4.1.1"
     id("signing")
 }
 
 group = "de.inoxio"
-version = "2.0.1"
+version = "3.0.0"
 description = "A java-spring library to push metrics to cloudwatch"
 
 repositories {
@@ -20,15 +16,21 @@ repositories {
 }
 
 dependencies {
-    // spring
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-starter-json")
+    // spring: only needed to compile the auto-configuration, consumers bring their own spring boot
+    compileOnly(platform(libs.spring.boot.dependencies))
+    compileOnly(libs.spring.boot.autoconfigure)
     // aws
-    implementation("software.amazon.awssdk:cloudwatch:2.57.1")
+    api(libs.aws.cloudwatch)
+    // json, used internally for the dashboard body only
+    implementation(libs.jackson.databind)
+    // logging
+    implementation(libs.slf4j.api)
 
     // test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:4.5.2")
+    testImplementation(platform(libs.spring.boot.dependencies))
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.equalsverifier)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java {
@@ -105,12 +107,6 @@ tasks {
             encoding = "UTF-8"
             compilerArgs = mutableListOf("-Xlint")
         }
-    }
-    withType<Jar> {
-        enabled = true
-    }
-    withType<BootJar> {
-        enabled = false
     }
     withType<Test> {
         useJUnitPlatform()

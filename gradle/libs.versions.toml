@@ -1,0 +1,38 @@
+# Every version sits between its own marker lines, so two Renovate PRs never
+# touch adjacent lines and can be merged/rebased without conflicts.
+
+[versions]
+# --- spring-boot
+spring-boot = "4.1.1"
+# --- aws-sdk
+aws-sdk = "2.57.1"
+# --- jackson
+jackson = "3.1.5"
+# --- slf4j
+slf4j = "2.0.18"
+# --- equalsverifier
+equalsverifier = "4.5.2"
+# --- test-logger
+test-logger = "4.0.0"
+# --- github-release
+github-release = "2.5.2"
+# --- nexus-publish
+nexus-publish = "2.0.0"
+# ---
+
+[libraries]
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+# managed by spring-boot-dependencies
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+# own versions
+aws-cloudwatch = { module = "software.amazon.awssdk:cloudwatch", version.ref = "aws-sdk" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+equalsverifier = { module = "nl.jqno.equalsverifier:equalsverifier", version.ref = "equalsverifier" }
+
+[plugins]
+test-logger = { id = "com.adarshr.test-logger", version.ref = "test-logger" }
+github-release = { id = "com.rickbusarow.github-release-fork", version.ref = "github-release" }
+nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
