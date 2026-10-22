@@ -14,19 +14,22 @@ If you have any questions please open an issue ticket!
 Add this to your build.gradle.kts
 ```kotlin
 dependencies {
-    implementation("de.inoxio:spring-cloudwatch-metrics:3.0.0")
+    implementation("de.inoxio:spring-cloudwatch-metrics:3.1.0")
 }
 ```
 
-Add the following properties to your project:
+Configure the library with the following properties, all of them are optional:
 ```yaml
 aws:
-  namespace: Namespace                 # Namespace where the metrics will be pushed to
-  metric-prefix: AppPrefix             # All Metrics will get this prefix. Final name will be AppPrefixHeapMemoryUsed
+  namespace: Namespace                 # Namespace where the metrics will be pushed to. Default: Default
+  metric-prefix: AppPrefix             # All Metrics will get this prefix. Final name will be AppPrefixHeapMemoryUsed.
+                                       # Default: no prefix
   dashboard-name: some-dashboard-name  # Optional: Set it to the dashboard name you want graphs to be annotated on 
                                        #           server start. It will add a vertical annotation to all graphs with
                                        #           metrics that start with 'metric-prefix'
 ```
+
+If `aws.namespace` or `aws.metric-prefix` is not set, the default is used and logged once on startup.
 
 The library registers itself via Spring Boot auto-configuration, no component scan is needed. Inject the
 `CloudwatchDAO` into your service:
