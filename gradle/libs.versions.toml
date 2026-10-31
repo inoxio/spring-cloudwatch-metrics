@@ -17,7 +17,7 @@ equalsverifier = "4.5.2"
 # --- test-logger
 test-logger = "4.0.0"
 # --- jreleaser
-jreleaser = "1.26.0"
+jreleaser = "1.27.0"
 # ---
 
 [libraries]
