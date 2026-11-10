@@ -7,7 +7,7 @@ java = "21"
 # --- spring-boot
 spring-boot = "4.1.2"
 # --- aws-sdk
-aws-sdk = "2.57.11"
+aws-sdk = "2.57.12"
 # --- jackson
 jackson = "3.3.0"
 # --- slf4j
